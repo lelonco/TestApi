@@ -8,12 +8,17 @@
 import UIKit
 
 class TaskListTableViewCell: UITableViewCell {
+    var task: Task? = nil {
+        didSet {
+            self.updateUIComponets()
+        }
+    }
     var isConstarintsUpdated = false
-    let taskTitleLabel = UILabel()
-    let dueTolabel = UILabel()
-    let priorityImageView = UIImageView()
-    let priporityLabel = UILabel()
-    let enterToPreviewImage = UIImageView(image: UIImage(systemName: "chevron.forward")?.withRenderingMode(.alwaysTemplate))
+    private let taskTitleLabel = UILabel()
+    private let dueTolabel = UILabel()
+    private let priorityImageView = UIImageView()
+    private let priporityLabel = UILabel()
+    private let enterToPreviewImage = UIImageView(image: UIImage(systemName: "chevron.forward")?.withRenderingMode(.alwaysTemplate))
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -49,8 +54,16 @@ class TaskListTableViewCell: UITableViewCell {
 
         enterToPreviewImage.autoPinEdge(toSuperviewMargin: .trailing)
         enterToPreviewImage.autoVCenterInSuperview()
+
+    }
+    
+    func updateUIComponets() {
+        guard let task = task else { return }
         
-        
+        taskTitleLabel.text = task.title
+        dueTolabel.text = task.dueBy?.description
+        priporityLabel.text = task.priority?.rawValue
+        priorityImageView.image = UIImage(systemName: "arrow.up")?.withRenderingMode(.alwaysTemplate)
         
     }
 }
