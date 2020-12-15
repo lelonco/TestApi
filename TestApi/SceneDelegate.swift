@@ -24,6 +24,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let navigationController = UINavigationController(rootViewController: didRegistred ?TaskListController() : ViewController())
         window?.rootViewController = navigationController
         window?.makeKeyAndVisible()
+        registerSingletons()
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
@@ -55,5 +56,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
 
+    func registerSingletons() {
+        
+        let networkManager = NetworkManager.shared
+        let accses = AccessManager.shared
+    }
 }
 
