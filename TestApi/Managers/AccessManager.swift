@@ -29,7 +29,11 @@ class AccessManager {
             if let dict = (try! JSONSerialization.jsonObject(with: object as! Data, options: [])) as? [String:Any],
                let token = dict["token"] as? String {
                 self.accountAccess?.token = token
-                self.accountAccess?.expierDate = Date()
+                var dateComp = DateComponents()
+                dateComp.hour = 24
+                let calendar = Calendar.current
+                let expierDate = calendar.date(byAdding: dateComp, to: Date())
+                self.accountAccess?.expierDate = expierDate
                 KeychainManager.updateTokensFrom(account: self.accountAccess!)
             }
         } failure: { (error) in
