@@ -6,3 +6,22 @@
 //
 
 import Foundation
+import RealmSwift
+
+class DatabaseManager {
+    
+    static let shared = DatabaseManager()
+    
+    private let realmInstance: Realm
+    
+    init() {
+        self.realmInstance = try! Realm()
+    }
+    
+    func write(block:((_ realm:Realm) ->())) {
+        block(realmInstance)
+    }
+    func read(block:((_ realm:Realm) ->())) {
+        block(realmInstance)
+    }
+}
