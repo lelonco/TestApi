@@ -18,7 +18,12 @@ class AccessManager {
     init() {
         guard let account = KeychainManager.getSecureAccountAccess() else { return }
         self.accountAccess = account
-        _ = Timer.init(fireAt: account.expierDate!, interval: 0, target: self, selector: #selector(updateAccessToken), userInfo: nil, repeats: false)
+        if let expierDate = account.expierDate,
+           expierDate <= Date() {
+            updateAccessToken()
+        } else {
+            _ = Timer.init(fireAt: account.expierDate!, interval: 0, target: self, selector: #selector(updateAccessToken), userInfo: nil, repeats: false)
+        }
     }
     
     @objc
