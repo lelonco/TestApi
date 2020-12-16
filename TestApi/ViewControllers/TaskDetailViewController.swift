@@ -35,9 +35,9 @@ class TaskDetailViewController: UIViewController {
     let headerStack: UIStackView = {
         let stack = UIStackView()
         stack.axis = .vertical
-        stack.distribution = .fill
+        stack.distribution = .fillEqually
         stack.alignment = .fill
-        stack.layoutMargins = UIEdgeInsets(top: 4, left: 20, bottom: 4, right: 10)
+        stack.layoutMargins = UIEdgeInsets(top: 4, left: 10, bottom: 4, right: 10)
         stack.isLayoutMarginsRelativeArrangement = true
         
         return stack
@@ -162,13 +162,16 @@ class TaskDetailViewController: UIViewController {
     }
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        headerContainer.layer.shadowColor = UIColor.black.cgColor
-        headerContainer.layer.shadowOffset = CGSize(width: 0, height: 6)
-        headerContainer.layer.shadowOpacity = 0.05
-        headerContainer.layer.shadowRadius = 5
-        headerContainer.layer.shadowPath =  UIBezierPath(roundedRect: headerContainer.bounds, cornerRadius: 15).cgPath
+        UIView.animate(withDuration: 1) {
+            self.headerContainer.layer.shadowColor = UIColor.black.cgColor
+            self.headerContainer.layer.shadowOffset = CGSize(width: 0, height: 6)
+            self.headerContainer.layer.shadowOpacity = 0.05
+            self.headerContainer.layer.shadowRadius = 5
+            self.headerContainer.layer.shadowPath =  UIBezierPath(roundedRect: self.headerContainer.bounds, cornerRadius: 15).cgPath
 
-        headerContainer.layer.masksToBounds = false
+            self.headerContainer.layer.masksToBounds = false
+        }
+
     }
     override func updateViewConstraints() {
         super.updateViewConstraints()
@@ -219,9 +222,7 @@ class TaskDetailViewController: UIViewController {
         titleLabel.text = task.title
         dueByLabel.text = task.dueBy?.description
         priorityLabel.text = task.priority?.rawValue
-        descriptionLabel.text = task.description
+        descriptionLabel.text = task.taskDescription
         notifyLabel.text = task.dueBy?.description
-//        contentView.backgroundColor = .blue
-        
     }
 }
