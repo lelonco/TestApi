@@ -11,7 +11,7 @@ import PureLayout
 class ViewController: UIViewController {
 
     let networkManager = NetworkManager.shared
-    var isConstartintsSetuped = false
+    var didConstraintsSetup = false
     var didLoginModeEnabled = true {
         didSet {
             self.loginRegisterButton.setTitle(didLoginModeEnabled ? "Login":"Register", for: .normal)
@@ -116,7 +116,7 @@ class ViewController: UIViewController {
 
     override func updateViewConstraints() {
         super.updateViewConstraints()
-        guard !self.isConstartintsSetuped else { return }
+        guard !self.didConstraintsSetup else { return }
         
         titleLabel.autoPinEdge(toSuperviewEdge: .top, withInset: 150)
         titleLabel.autoPinEdge(toSuperviewEdge: .leading,withInset: 20)
@@ -126,7 +126,7 @@ class ViewController: UIViewController {
         contentStack.autoPinEdge(toSuperviewEdge: .trailing,withInset: 20)
         contentStack.autoPinEdge(.top, to: .bottom, of: titleLabel,withOffset: 50)
         
-        isConstartintsSetuped = true 
+        didConstraintsSetup = true
     }
     
     @objc
