@@ -10,7 +10,7 @@ import UIKit
 
 class TaskListController: UIViewController  {
     let reuseIdentifier = "TaskListControllerCellReuse"
-    var isConstartintsSetuped = false
+    var didConstraintsSetup = false
     
     let tableView = UITableView(frame: .zero, style: .plain)
     let refreshControl = UIRefreshControl()
@@ -40,7 +40,7 @@ class TaskListController: UIViewController  {
         } failure: { (error) in
             assertionFailure(error.localizedDescription)
         }
-
+        updateBarButtons()
         self.view.setNeedsUpdateConstraints()
     }
     
@@ -51,10 +51,23 @@ class TaskListController: UIViewController  {
     }
     override func updateViewConstraints() {
         super.updateViewConstraints()
-        guard !isConstartintsSetuped else { return }
+        guard !didConstraintsSetup else { return }
         tableView.autoPinEdgesToSuperviewMargins()
         
-        isConstartintsSetuped = true
+        didConstraintsSetup = true
+    }
+    
+    func updateBarButtons() {
+        let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addNewTaskTapped))
+        self.navigationItem.setLeftBarButton(addButton, animated: true)
+        
+    }
+    
+    @objc
+    func addNewTaskTapped() {
+        let vc = WriteTaskViewController()
+        
+        self.navigationController?.pushViewController(vc, animated: true)
     }
 }
 
