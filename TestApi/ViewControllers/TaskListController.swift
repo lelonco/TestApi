@@ -7,6 +7,8 @@
 
 import Foundation
 import UIKit
+import LoremSwiftum
+import RealmSwift
 
 class TaskListController: UIViewController  {
     let reuseIdentifier = "TaskListControllerCellReuse"
@@ -16,8 +18,11 @@ class TaskListController: UIViewController  {
     let refreshControl = UIRefreshControl()
 
     var networkManager = NetworkManager.shared
+    let databaseStorage = DatabaseManager.shared
+    var dataSource:  Results<Task>!
+    var notificationToken: NotificationToken?
     
-    var dataSource: [Task] = Array.init(repeating: Task(id: 2, title: "Title", dueBy: 1231312, priority: .high, taskDescription: "HelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHello"), count: 200)
+//        Array.init(repeating: Task(id: 2, title: "Title", dueBy: 1231312, priority: .high, taskDescription: "HelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHello"), count: 200)
     override func loadView() {
         super.loadView()
         self.view.backgroundColor = .white
@@ -32,18 +37,50 @@ class TaskListController: UIViewController  {
     }
     override func viewDidLoad() {
         super.viewDidLoad()
+//        databaseStorage.objects(Task.self).forEach { (task) in
+//            try! self.databaseStorage.write {
+//                self.databaseStorage.delete(task)
+//            }
+//        }
         let request = RequestBuilder.getTasksRequest(page: 0, sortedBy: "title", sortingType: .asc)
-        networkManager.makeRequest(request) { (response, object) in
-            print(try! JSONSerialization.jsonObject(with: object as! Data, options: []))
-            
-            
-        } failure: { (error) in
-            assertionFailure(error.localizedDescription)
-        }
+        //        networkManager.makeRequest(request) { (response, object) in
+        //            print(try! JSONSerialization.jsonObject(with: object as! Data, options: []))
+        //
+        //
+        //        } failure: { (error) in
+        //            assertionFailure(error.localizedDescription)
+        //        }
         updateBarButtons()
+        
         self.view.setNeedsUpdateConstraints()
+        dataSource = databaseStorage.objects(Task.self)
+        notificationToken = dataSource.observe { [weak self] (changes) in
+            guard let self = self else { return }
+            switch changes {
+            case .initial:
+                // Results are now populated and can be accessed without blocking the UI
+                self.tableView.reloadData()
+            case .update(_, let deletions, let insertions, let modifications):
+                // Query results have changed, so apply them to the UITableView
+                self.tableView.beginUpdates()
+                self.tableView.insertRows(at: insertions.map({ IndexPath(row: $0, section: 0) }),
+                                     with: .automatic)
+                self.tableView.deleteRows(at: deletions.map({ IndexPath(row: $0, section: 0)}),
+                                     with: .automatic)
+                self.tableView.reloadRows(at: modifications.map({ IndexPath(row: $0, section: 0) }),
+                                     with: .automatic)
+                self.tableView.endUpdates()
+            case .error(let error):
+                // An error occurred while opening the Realm file on the background worker thread
+                fatalError("\(error)")
+            }
+
+        }
     }
     
+    deinit {
+        notificationToken?.invalidate()
+    }
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
@@ -65,9 +102,26 @@ class TaskListController: UIViewController  {
     
     @objc
     func addNewTaskTapped() {
-        let vc = WriteTaskViewController()
         
-        self.navigationController?.pushViewController(vc, animated: true)
+//        for _ in 0..<1 {
+            do {
+                try self.databaseStorage.write {
+                    let task = Task(id: nil,
+                                    title: Lorem.title,
+                                    dueBy: Date().millisecondsSince1970,
+                                    priority: TaskPriority.allCases.randomElement(),
+                                    taskDescription: Lorem.paragraphs(Int.random(in: 0...10)))
+                    self.databaseStorage.add(task)
+                    print(task.description)
+                }
+            } catch {
+                assertionFailure(error.localizedDescription)
+            }
+//        }
+        
+        //        let vc = WriteTaskViewController()
+        //
+        //        self.navigationController?.pushViewController(vc, animated: true)
     }
 }
 

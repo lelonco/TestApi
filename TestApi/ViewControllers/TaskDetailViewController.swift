@@ -220,9 +220,11 @@ class TaskDetailViewController: UIViewController {
     func updateUIComponets() {
         
         titleLabel.text = task.title
-        dueByLabel.text = task.dueBy?.description
+        let dateFormater = DateFormatter()
+        dateFormater.dateFormat = "EEEE, d MMM , yyyy"
+        dueByLabel.text = dateFormater.string(from: Date(milliseconds: task.dueBy.value!))
         priorityLabel.text = task.priority?.rawValue
         descriptionLabel.text = task.taskDescription
-        notifyLabel.text = task.dueBy?.description
+        notifyLabel.text = dateFormater.string(from: Date(milliseconds: task.dueBy.value!))//Date(milliseconds: task.dueBy.value!).description
     }
 }

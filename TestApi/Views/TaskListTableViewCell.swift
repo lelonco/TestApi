@@ -41,6 +41,7 @@ class TaskListTableViewCell: UITableViewCell {
         
         taskTitleLabel.autoPinEdge(toSuperviewMargin: .top)
         taskTitleLabel.autoPinEdge(toSuperviewMargin: .leading)
+        taskTitleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         taskTitleLabel.autoPinEdge(.trailing, to: .leading, of: enterToPreviewImage,withOffset: -15, relation: .lessThanOrEqual)
 
         dueTolabel.autoPinEdge(.top, to: .bottom, of: taskTitleLabel,withOffset: 5)
@@ -59,9 +60,10 @@ class TaskListTableViewCell: UITableViewCell {
     
     func updateUIComponets() {
         guard let task = task else { return }
-        
+        let dateFormater = DateFormatter()
+        dateFormater.dateFormat = "EEEE, d MMM , yyyy"
         taskTitleLabel.text = task.title
-        dueTolabel.text = task.dueBy?.description
+        dueTolabel.text = dateFormater.string(from: Date(milliseconds: task.dueBy.value!))
         priporityLabel.text = task.priority?.rawValue
         priorityImageView.image = UIImage(systemName: "arrow.up")?.withRenderingMode(.alwaysTemplate)
         
