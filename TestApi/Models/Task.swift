@@ -15,11 +15,11 @@ enum TaskPriority:String, Codable, CaseIterable {
 }
 @objcMembers
 class Task: Object, Codable {
-    dynamic var id: Int? = nil
+    dynamic var id = RealmOptional<Int>()
     dynamic var title: String? = nil
-    dynamic var dueBy: Int64? = nil
-    private dynamic var priorityString: String? = nil
-    dynamic var priority: TaskPriority? {
+    dynamic var dueBy = RealmOptional<Int64>()
+    dynamic var priorityString: String?
+    var priority: TaskPriority? {
         get {
             guard let string = priorityString else { return nil }
             return TaskPriority(rawValue: string)
@@ -28,11 +28,11 @@ class Task: Object, Codable {
     }
     dynamic var taskDescription: String?
 
-    convenience init(id: Int, title: String?, dueBy: Int64?, priority: TaskPriority?, taskDescription: String?) {
+    convenience init(id: Int?, title: String?, dueBy: Int64?, priority: TaskPriority?, taskDescription: String?) {
         self.init()
-        self.id = id
+        self.id = RealmOptional(id)
         self.title = title
-        self.dueBy = dueBy
+        self.dueBy = RealmOptional(dueBy)
         self.priorityString = priority?.rawValue
 //        self.priority = priority
         self.taskDescription = taskDescription
