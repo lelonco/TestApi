@@ -140,13 +140,37 @@ extension TaskListController:UITableViewDelegate {
         let vc = TaskDetailViewController(with: dataSource[indexPath.row])
         self.navigationController?.pushViewController(vc, animated: true)
     }
+
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
 }
 
 extension TaskListController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return dataSource.count
     }
+
+    func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let action = UIContextualAction(style: .normal, title: "Edit") { (_, _, editAction) in
+            let vc = WriteTaskViewController(with: self.dataSource[indexPath.row])
+            self.navigationController?.pushViewController(vc, animated: true)
+            editAction(true)
+        }
+        action.backgroundColor = .green
+        return UISwipeActionsConfiguration(actions: [action])
+    }
     
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let action = UIContextualAction(style: .destructive, title: "Delete") { (_, _, editAction) in
+            let task = self.dataSource[indexPath.row]
+            try! self.databaseStorage.write {
+                self.databaseStorage.delete(task)
+            }
+            editAction(true)
+        }
+        return UISwipeActionsConfiguration(actions: [action])
+    }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: reuseIdentifier, for: indexPath) as? TaskListTableViewCell else {
