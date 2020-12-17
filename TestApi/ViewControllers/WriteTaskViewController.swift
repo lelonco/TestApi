@@ -10,7 +10,7 @@ import UIKit
 
 class WriteTaskViewController: UIViewController {
     var didConstraintsSetup = false
-    
+    var task: Task? = nil
     let scrollView: UIScrollView = {
         let scroll = UIScrollView()
         scroll.isScrollEnabled = true
@@ -26,7 +26,7 @@ class WriteTaskViewController: UIViewController {
         stack.alignment = .fill
         stack.layoutMargins = UIEdgeInsets(top: 4, left: 0, bottom: 4, right: 30)
         stack.isLayoutMarginsRelativeArrangement = true
-        
+        stack.spacing = 15
         return stack
     }()
     
@@ -67,8 +67,8 @@ class WriteTaskViewController: UIViewController {
     }()
     let titleTextView: UITextView = {
         let textView = UITextView()
-        textView.layer.borderWidth = 1
-        textView.layer.borderColor = UIColor.lightGray.cgColor
+//        textView.layer.borderWidth = 1
+//        textView.layer.borderColor = UIColor.lightGray.cgColor
         textView.layer.cornerRadius = 15
         textView.autoSetDimension(.height, toSize: 40,relation: .greaterThanOrEqual)
         textView.isScrollEnabled = false
@@ -89,8 +89,8 @@ class WriteTaskViewController: UIViewController {
         let textView = UITextView()
         textView.autoSetDimension(.height, toSize: 40,relation: .greaterThanOrEqual)
         textView.isScrollEnabled = false
-        textView.layer.borderWidth = 1
-        textView.layer.borderColor = UIColor.lightGray.cgColor
+//        textView.layer.borderWidth = 1
+//        textView.layer.borderColor = UIColor.lightGray.cgColor
         textView.layer.cornerRadius = 15
         return textView
     }()
@@ -129,6 +129,17 @@ class WriteTaskViewController: UIViewController {
     }()
     let notifyRow = UIView()
 
+    let databaseStorage = DatabaseManager.shared
+    
+    init(with task: Task? = nil) {
+        super.init(nibName: nil, bundle: nil)
+        self.task = task
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func loadView() {
         super.loadView()
         self.view.backgroundColor = .white
@@ -151,11 +162,17 @@ class WriteTaskViewController: UIViewController {
         self.scrollView.keyboardDismissMode = .interactive
         self.view.addSubview(scrollView)
         scrollView.addSubview(contentStack)
+        if let task = task {
+            titleTextView.text = task.title
+            descriptionTextView.text = task.taskDescription
+//            notificationButton
+        }
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.setNeedsUpdateConstraints()
+        updateBarButtons()
     }
     
     override func updateViewConstraints() {
@@ -180,6 +197,36 @@ class WriteTaskViewController: UIViewController {
         didConstraintsSetup = true
         super.updateViewConstraints()
     }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        [titleTextView,descriptionTextView].forEach { (view) in
+            view.layer.shadowColor = UIColor.black.cgColor
+            view.layer.shadowOffset = CGSize(width: 0, height: 6)
+            view.layer.shadowOpacity = 0.07
+            view.layer.shadowRadius = 4
+//            view.layer.shadowPath =  UIBezierPath(roundedRect: view.bounds, cornerRadius: 15).cgPath
+            view.layer.masksToBounds = false
+        }
+    }
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        [titleTextView,descriptionTextView].forEach { (view) in
+//            view.layer.shadowColor = UIColor.black.cgColor
+//            view.layer.shadowOffset = CGSize(width: 0, height: 6)
+//            view.layer.shadowOpacity = 0.07
+//            view.layer.shadowRadius = 4
+            view.layer.shadowPath =  UIBezierPath(roundedRect: view.bounds, cornerRadius: 15).cgPath
+//            view.layer.masksToBounds = false
+        }
+       
+    }
+    
+    func updateBarButtons() {
+        
+        let addButton = UIBarButtonItem(image: UIImage(systemName: "chevron.backward"), style: .plain, target: self, action: #selector(backButtonTapped))
+        self.navigationItem.setLeftBarButton(addButton, animated: true)
+        
+    }
     
     @objc
     func prioritySelected(sender: UIButton) {
@@ -189,6 +236,53 @@ class WriteTaskViewController: UIViewController {
     @objc
     func notificationButtonTapped() {
         print("notificationButtonTapped")
+    }
+    
+    
+    @objc
+    func backButtonTapped() {
+        
+        if !hasUnsavedChanges() {
+            self.navigationController?.popViewController(animated: true)
+            return
+        }
+        self.databaseStorage.objects(Task.self).forEach({
+                                                            print($0.description)
+            
+        })
+        let alertController = UIAlertController(title: "Attention!", message: "You have unsave changes", preferredStyle: .actionSheet)
+        let saveAndClose = UIAlertAction(title: "Save", style: .default) { (_) in
+            do {
+                
+                try self.databaseStorage.write {
+                    if let task = self.task {
+                        task.taskDescription = self.descriptionTextView.text
+                        task.title = self.titleTextView.text
+                    } else {
+                        self.databaseStorage.add(Task(id: nil, title: self.titleTextView.text, dueBy: Date().millisecondsSince1970, priority: .high, taskDescription: self.descriptionTextView.text))
+
+                    }
+                }
+            } catch {
+                assertionFailure(error.localizedDescription)
+            }
+
+            self.navigationController?.popViewController(animated: true)
+        }
+        let discard = UIAlertAction(title: "Discard", style: .default) { (_) in
+            self.navigationController?.popViewController(animated: true)
+        }
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel)
+        [saveAndClose,discard,cancel].forEach({ alertController.addAction($0) })
+        self.present(alertController, animated: true, completion: nil)
+    }
+    
+    
+    func hasUnsavedChanges() -> Bool {
+        if let task = task {
+            return self.titleTextView.text != task.title || self.descriptionTextView.text != task.description
+        }
+        return !self.titleTextView.text.isEmpty || !self.descriptionTextView.text.isEmpty
     }
     
 }
