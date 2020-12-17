@@ -40,7 +40,7 @@ class RequestBuilder {
         return request
     }
     
-    static func createTaskRequest(with task: Task) -> TestApiRequest {
+    static func uploadTaskRequest(with task: Task) -> TestApiRequest {
         let request = TestApiRequest(endPoint: "tasks")
         request.httpMethod = .post
         request.headerParameters = ["Content-Type":"application/json"]
@@ -50,6 +50,7 @@ class RequestBuilder {
             assertionFailure(error.localizedDescription)
         }
         self.addAuthtoHeader(request: request)
+        print("uploadRequest created for \(task.title)")
         return request
         
     }
@@ -70,7 +71,8 @@ class RequestBuilder {
         guard let token = Self.accessManager.accountAccess?.token else { return }
 
         if var headers = request.headerParameters {
-            headers["Bearer"] = ["Authorization":("Bearer " + token)]
+            headers["Authorization"] = ("Bearer " + token)
+            request.headerParameters = headers
         } else {
             request.headerParameters = ["Authorization":("Bearer " + token)]
         }
