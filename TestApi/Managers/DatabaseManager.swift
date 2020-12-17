@@ -10,18 +10,11 @@ import RealmSwift
 
 class DatabaseManager {
     
-    static let shared = DatabaseManager()
+    static let shared = try! Realm()
     
-    private let realmInstance: Realm
-    
-    init() {
-        self.realmInstance = try! Realm()
-    }
-    
-    func write(block:((_ realm:Realm) ->())) {
-        block(realmInstance)
-    }
-    func read(block:((_ realm:Realm) ->())) {
-        block(realmInstance)
-    }
+//    let realmInstance: Realm
+//    
+//    init() {
+//        self.realmInstance = try! Realm()
+//    }
 }
