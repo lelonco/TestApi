@@ -33,8 +33,8 @@ class RequestBuilder {
     static func getTasksRequest(page: Int, sortedBy:String, sortingType:SortingType) -> TestApiRequest {
         let request = TestApiRequest(endPoint: "tasks")
         request.httpMethod = .get
-        request.queryParam = ["sort":(sortedBy + " " + sortingType.rawValue),
-                              "page":page]
+        request.queryParam = ["page": "\(page)",
+                              "sort":(sortedBy + " " + sortingType.rawValue)]
         
         self.addAuthtoHeader(request: request)
         return request
@@ -50,9 +50,35 @@ class RequestBuilder {
             assertionFailure(error.localizedDescription)
         }
         self.addAuthtoHeader(request: request)
-        print("uploadRequest created for \(task.title)")
+        print("uploadRequest created for " + (task.title ?? ""))
         return request
         
+    }
+    
+    static func updateTaskRequest(with task: Task) -> TestApiRequest {
+        guard let taskId = task.id.value else { return TestApiRequest(endPoint: "tasks")}
+        let request = TestApiRequest(endPoint: "tasks/\(taskId)")
+        request.httpMethod = .put
+        request.headerParameters = ["Content-Type":"application/json"]
+        do {
+            request.httpBody = try encoder.encode(task)
+        } catch {
+            assertionFailure(error.localizedDescription)
+        }
+        self.addAuthtoHeader(request: request)
+        print("update Request created for " + (task.title ?? ""))
+        return request
+    }
+    
+    static func deleteTaskRequest(with task: Task) -> TestApiRequest {
+        guard let taskId = task.id.value else { return TestApiRequest(endPoint: "tasks")}
+        let request = TestApiRequest(endPoint: "tasks/\(taskId)")
+        request.httpMethod = .delete
+        request.headerParameters = ["Content-Type":"application/json"]
+        
+        self.addAuthtoHeader(request: request)
+        print("delete Request created for " + (task.title ?? ""))
+        return request
     }
 
     static func authorize(user: User) -> TestApiRequest {
