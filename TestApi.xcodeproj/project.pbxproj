@@ -19,6 +19,9 @@
 		B34C02E92587CA1A003F826E /* Task.swift in Sources */ = {isa = PBXBuildFile; fileRef = B34C02E82587CA1A003F826E /* Task.swift */; };
 		B34C02EC2587CFF7003F826E /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = B34C02EB2587CFF7003F826E /* User.swift */; };
 		B34C02F12587F363003F826E /* TaskListController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B34C02F02587F363003F826E /* TaskListController.swift */; };
+		B36DBB22258EA29100986765 /* SectionLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36DBB21258EA29100986765 /* SectionLabel.swift */; };
+		B36DBB26258EA40800986765 /* ShadowTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36DBB25258EA40800986765 /* ShadowTextView.swift */; };
+		B36DBB29258EA56000986765 /* BaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36DBB28258EA56000986765 /* BaseViewController.swift */; };
 		B378D8AE2587F4BF00B8A120 /* TaskListTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B378D8AD2587F4BF00B8A120 /* TaskListTableViewCell.swift */; };
 		B378D8B625880E6100B8A120 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B378D8B525880E6100B8A120 /* KeychainManager.swift */; };
 		B378D8B925880FBE00B8A120 /* AccountAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = B378D8B825880FBE00B8A120 /* AccountAccess.swift */; };
@@ -48,6 +51,9 @@
 		B34C02E82587CA1A003F826E /* Task.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Task.swift; sourceTree = "<group>"; };
 		B34C02EB2587CFF7003F826E /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		B34C02F02587F363003F826E /* TaskListController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskListController.swift; sourceTree = "<group>"; };
+		B36DBB21258EA29100986765 /* SectionLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionLabel.swift; sourceTree = "<group>"; };
+		B36DBB25258EA40800986765 /* ShadowTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShadowTextView.swift; sourceTree = "<group>"; };
+		B36DBB28258EA56000986765 /* BaseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseViewController.swift; sourceTree = "<group>"; };
 		B378D8AD2587F4BF00B8A120 /* TaskListTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskListTableViewCell.swift; sourceTree = "<group>"; };
 		B378D8B525880E6100B8A120 /* KeychainManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		B378D8B825880FBE00B8A120 /* AccountAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountAccess.swift; sourceTree = "<group>"; };
@@ -101,6 +107,7 @@
 				B34C02F02587F363003F826E /* TaskListController.swift */,
 				B3F9394C2589215700A366D4 /* TaskDetailViewController.swift */,
 				B30E41E22589654100475200 /* WriteTaskViewController.swift */,
+				B36DBB28258EA56000986765 /* BaseViewController.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -118,6 +125,8 @@
 			isa = PBXGroup;
 			children = (
 				B378D8AD2587F4BF00B8A120 /* TaskListTableViewCell.swift */,
+				B36DBB21258EA29100986765 /* SectionLabel.swift */,
+				B36DBB25258EA40800986765 /* ShadowTextView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -270,13 +279,16 @@
 				B378D8B925880FBE00B8A120 /* AccountAccess.swift in Sources */,
 				B30E41E0258959C500475200 /* DatabaseManager.swift in Sources */,
 				B324684A2587C27E0051805A /* RequestBuilder.swift in Sources */,
+				B36DBB22258EA29100986765 /* SectionLabel.swift in Sources */,
 				B378D8B625880E6100B8A120 /* KeychainManager.swift in Sources */,
 				B34C02F12587F363003F826E /* TaskListController.swift in Sources */,
 				B3A197F4258A8B7E004B0AD5 /* Date+Extensions.swift in Sources */,
 				B32468432587BD970051805A /* UIView+Extensions.swift in Sources */,
 				B378D8BC258818ED00B8A120 /* Constants.swift in Sources */,
 				B378D8BF25881D6E00B8A120 /* AccessManager.swift in Sources */,
+				B36DBB29258EA56000986765 /* BaseViewController.swift in Sources */,
 				C49076A22584FD17009084BB /* SceneDelegate.swift in Sources */,
+				B36DBB26258EA40800986765 /* ShadowTextView.swift in Sources */,
 				B3F9394D2589215700A366D4 /* TaskDetailViewController.swift in Sources */,
 				B34C02EC2587CFF7003F826E /* User.swift in Sources */,
 			);
