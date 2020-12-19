@@ -230,7 +230,7 @@ class WriteTaskViewController: UIViewController {
     
     @objc
     func prioritySelected(sender: UIButton) {
-        print(sender.titleLabel?.text)
+        print(sender.titleLabel?.text ?? "")
     }
     
     @objc
@@ -253,11 +253,11 @@ class WriteTaskViewController: UIViewController {
         let alertController = UIAlertController(title: "Attention!", message: "You have unsave changes", preferredStyle: .actionSheet)
         let saveAndClose = UIAlertAction(title: "Save", style: .default) { (_) in
             do {
-                
                 try self.databaseStorage.write {
                     if let task = self.task {
                         task.taskDescription = self.descriptionTextView.text
                         task.title = self.titleTextView.text
+                        task.wasEdited = true
                     } else {
                         self.databaseStorage.add(Task(id: nil, title: self.titleTextView.text, dueBy: Date().millisecondsSince1970, priority: .high, taskDescription: self.descriptionTextView.text))
 
@@ -280,7 +280,7 @@ class WriteTaskViewController: UIViewController {
     
     func hasUnsavedChanges() -> Bool {
         if let task = task {
-            return self.titleTextView.text != task.title || self.descriptionTextView.text != task.description
+            return self.titleTextView.text != task.title || self.descriptionTextView.text != task.taskDescription ?? ""
         }
         return !self.titleTextView.text.isEmpty || !self.descriptionTextView.text.isEmpty
     }
