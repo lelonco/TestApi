@@ -20,7 +20,6 @@ class RequestBuilder {
     static func registerNewUser(newUser: User) -> TestApiRequest {
         let request = TestApiRequest(endPoint: "users")
         request.httpMethod = .post
-        request.headerParameters = ["Content-Type":"application/json"]
         do {
             request.httpBody = try encoder.encode(newUser)
         } catch {
@@ -43,48 +42,44 @@ class RequestBuilder {
     static func uploadTaskRequest(with task: Task) -> TestApiRequest {
         let request = TestApiRequest(endPoint: "tasks")
         request.httpMethod = .post
-        request.headerParameters = ["Content-Type":"application/json"]
         do {
             request.httpBody = try encoder.encode(task)
         } catch {
             assertionFailure(error.localizedDescription)
         }
         self.addAuthtoHeader(request: request)
-        print("uploadRequest created for " + (task.title ?? ""))
         return request
         
     }
     
     static func updateTaskRequest(with task: Task) -> TestApiRequest {
-        guard let taskId = task.id.value else { return TestApiRequest(endPoint: "tasks")}
+        guard let taskId = task.id.value else {
+            assertionFailure("Cant get task id")
+            return TestApiRequest(endPoint: "tasks")
+        }
         let request = TestApiRequest(endPoint: "tasks/\(taskId)")
         request.httpMethod = .put
-        request.headerParameters = ["Content-Type":"application/json"]
         do {
             request.httpBody = try encoder.encode(task)
         } catch {
             assertionFailure(error.localizedDescription)
         }
         self.addAuthtoHeader(request: request)
-        print("update Request created for " + (task.title ?? ""))
+
         return request
     }
     
-    static func deleteTaskRequest(with task: Task) -> TestApiRequest {
-        guard let taskId = task.id.value else { return TestApiRequest(endPoint: "tasks")}
-        let request = TestApiRequest(endPoint: "tasks/\(taskId)")
+    static func deleteTaskRequest(with id: Int) -> TestApiRequest {
+        let request = TestApiRequest(endPoint: "tasks/\(id)")
         request.httpMethod = .delete
-        request.headerParameters = ["Content-Type":"application/json"]
         
         self.addAuthtoHeader(request: request)
-        print("delete Request created for " + (task.title ?? ""))
         return request
     }
 
     static func authorize(user: User) -> TestApiRequest {
         let request = TestApiRequest(endPoint: "auth")
         request.httpMethod = .post
-        request.headerParameters = ["Content-Type":"application/json"]
         do {
             request.httpBody = try encoder.encode(user)
         } catch {
@@ -95,13 +90,7 @@ class RequestBuilder {
 
     private static func addAuthtoHeader(request: TestApiRequest) {
         guard let token = Self.accessManager.accountAccess?.token else { return }
-
-        if var headers = request.headerParameters {
-            headers["Authorization"] = ("Bearer " + token)
-            request.headerParameters = headers
-        } else {
-            request.headerParameters = ["Authorization":("Bearer " + token)]
-        }
+        request.headerParameters["Authorization"] = ("Bearer " + token)
     }
     
 }

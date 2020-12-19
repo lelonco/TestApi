@@ -17,7 +17,7 @@ enum HttpMethod: String {
 class TestApiRequest {
     var httpMethod: HttpMethod = .get
     var endPoint: String?
-    var headerParameters: [String:Any]?
+    var headerParameters: [String:Any] = ["Content-Type":"application/json"]
     var queryParam: [String:Any]?
     var httpBody: Data?
     init(endPoint: String) {

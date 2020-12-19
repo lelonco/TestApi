@@ -56,10 +56,8 @@ class NetworkManager: NSObject {
             })
         }
         var urlRequest = URLRequest(url: (urlComp?.url)!)
-        if let params = request.headerParameters {
-            params.forEach { (key: String, value: Any) in
-                urlRequest.setValue(value as? String, forHTTPHeaderField: key)
-            }
+        request.headerParameters.forEach { (key: String, value: Any) in
+            urlRequest.setValue(value as? String, forHTTPHeaderField: key)
         }
 
         urlRequest.httpBody = request.httpBody
