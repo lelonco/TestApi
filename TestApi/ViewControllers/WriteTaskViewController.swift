@@ -8,9 +8,11 @@
 import Foundation
 import UIKit
 
-class WriteTaskViewController: UIViewController {
+class WriteTaskViewController: BaseViewController {
+    
     var didConstraintsSetup = false
     var task: Task? = nil
+    
     let scrollView: UIScrollView = {
         let scroll = UIScrollView()
         scroll.isScrollEnabled = true
@@ -30,32 +32,10 @@ class WriteTaskViewController: UIViewController {
         return stack
     }()
     
-    let titleSectionLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = .darkGray
-        label.text = "Title"
-        label.font = .systemFont(ofSize: 17, weight: .regular)
-        
-        return label
-    }()
-    
-    let prioritySectionLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = .darkGray
-        label.text = "Priority"
-        label.font = .systemFont(ofSize: 17, weight: .regular)
-        
-        return label
-    }()
-    
-    let desctiptionSectionLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = .darkGray
-        label.text = "Description"
-        label.font = .systemFont(ofSize: 17, weight: .regular)
-        
-        return label
-    }()
+    let titleSectionLabel = SectionLabel(with:"Title")
+    let prioritySectionLabel = SectionLabel(with:"Priority")
+    let desctiptionSectionLabel = SectionLabel(with:"Description")
+
     
     let notificationSectionLabel: UILabel = {
         let label = UILabel()
@@ -65,16 +45,7 @@ class WriteTaskViewController: UIViewController {
         
         return label
     }()
-    let titleTextView: UITextView = {
-        let textView = UITextView()
-//        textView.layer.borderWidth = 1
-//        textView.layer.borderColor = UIColor.lightGray.cgColor
-        textView.layer.cornerRadius = 15
-        textView.autoSetDimension(.height, toSize: 40,relation: .greaterThanOrEqual)
-        textView.isScrollEnabled = false
-        
-        return textView
-    }()
+    let titleTextView = ShadowTextView()
     
     let priorityButtonsStack: UIStackView = {
         let stack = UIStackView()
@@ -85,15 +56,7 @@ class WriteTaskViewController: UIViewController {
         return stack
     }()
     
-    let descriptionTextView: UITextView = {
-        let textView = UITextView()
-        textView.autoSetDimension(.height, toSize: 40,relation: .greaterThanOrEqual)
-        textView.isScrollEnabled = false
-//        textView.layer.borderWidth = 1
-//        textView.layer.borderColor = UIColor.lightGray.cgColor
-        textView.layer.cornerRadius = 15
-        return textView
-    }()
+    let descriptionTextView = ShadowTextView()
     
     let notificationButton: UIButton = {
         let button = UIButton(type: .custom)
@@ -127,12 +90,52 @@ class WriteTaskViewController: UIViewController {
         
         return stack
     }()
+    
+    let dateRow: UIStackView = {
+        let stack = UIStackView()
+        stack.distribution = .fillProportionally
+        stack.alignment = .fill
+        
+        return stack
+    }()
+    
+    let dateSectionTitle = SectionLabel(with:"Due by:")
+
+    let dateTextField: UITextField = {
+        let textField = UITextField()
+        textField.font = .systemFont(ofSize: 15, weight: .medium)
+        textField.textColor = .darkGray
+        textField.placeholder = "Date..."
+        textField.textAlignment = .right
+        return textField
+    }()
+    
+    let datePicker: UIDatePicker = {
+        let picker = UIDatePicker()
+        picker.minimumDate = Date()
+        picker.datePickerMode = .dateAndTime
+        picker.timeZone = NSTimeZone.local
+        picker.tintColor = .darkGray
+
+        return picker
+    }()
+    
+    let pickerToolbar: UIToolbar = {
+        let toolbar = UIToolbar()
+        toolbar.barStyle = .default
+        toolbar.autoresizingMask = .flexibleHeight
+        toolbar.tintColor = .darkGray
+
+        return toolbar
+    }()
+
+    
     let notifyRow = UIView()
 
     let databaseStorage = DatabaseManager.shared
     
     init(with task: Task? = nil) {
-        super.init(nibName: nil, bundle: nil)
+        super.init()
         self.task = task
     }
     
@@ -157,16 +160,26 @@ class WriteTaskViewController: UIViewController {
         [prioritySectionLabel,priorityButtonsStack].forEach({ self.priorityRow.addArrangedSubview($0) })
         [desctiptionSectionLabel,descriptionTextView].forEach({ self.descriptionRow.addArrangedSubview($0) })
         [notificationSectionLabel,notificationButton].forEach({ self.notifyRow.addSubview($0) })
-
-        [titleRow,priorityRow,descriptionRow,notifyRow].forEach({ self.contentStack.addArrangedSubview($0) })
+        [dateSectionTitle,dateTextField].forEach({ self.dateRow.addArrangedSubview($0) })
+        [titleRow,priorityRow,descriptionRow,dateRow,notifyRow].forEach({ self.contentStack.addArrangedSubview($0) })
         self.scrollView.keyboardDismissMode = .interactive
         self.view.addSubview(scrollView)
+        self.view.addSubview(datePicker)
+        self.view.addSubview(pickerToolbar)
         scrollView.addSubview(contentStack)
+        
+        dateTextField.inputView = datePicker
+        dateTextField.inputAccessoryView = pickerToolbar
         if let task = task {
             titleTextView.text = task.title
             descriptionTextView.text = task.taskDescription
-//            notificationButton
         }
+
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(datePickerDoneTapped))
+        let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(datePickerCancelTapped))
+        let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        
+        pickerToolbar.items = [doneButton,flexSpace,cancelButton]
     }
     
     override func viewDidLoad() {
@@ -181,8 +194,9 @@ class WriteTaskViewController: UIViewController {
             return
         }
         
-        scrollView.autoPinEdgesToSuperviewEdges()
-        
+        scrollView.autoPinEdgesToSuperviewEdges(with: UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0) , excludingEdge: .bottom)
+
+        self.autoPinView(toBottomOfViewControllerOrKeyboard: scrollView, withOffset: -20)
         contentStack.autoPinEdgesToSuperviewEdges(with: UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15),excludingEdge: .trailing)
         contentStack.autoSetDimension(.width, toSize: (UIApplication.shared.windows.first?.frame.width)!)
         
@@ -197,35 +211,11 @@ class WriteTaskViewController: UIViewController {
         didConstraintsSetup = true
         super.updateViewConstraints()
     }
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        [titleTextView,descriptionTextView].forEach { (view) in
-            view.layer.shadowColor = UIColor.black.cgColor
-            view.layer.shadowOffset = CGSize(width: 0, height: 6)
-            view.layer.shadowOpacity = 0.07
-            view.layer.shadowRadius = 4
-//            view.layer.shadowPath =  UIBezierPath(roundedRect: view.bounds, cornerRadius: 15).cgPath
-            view.layer.masksToBounds = false
-        }
-    }
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        [titleTextView,descriptionTextView].forEach { (view) in
-//            view.layer.shadowColor = UIColor.black.cgColor
-//            view.layer.shadowOffset = CGSize(width: 0, height: 6)
-//            view.layer.shadowOpacity = 0.07
-//            view.layer.shadowRadius = 4
-            view.layer.shadowPath =  UIBezierPath(roundedRect: view.bounds, cornerRadius: 15).cgPath
-//            view.layer.masksToBounds = false
-        }
-       
-    }
     
     func updateBarButtons() {
         
         let addButton = UIBarButtonItem(image: UIImage(systemName: "chevron.backward"), style: .plain, target: self, action: #selector(backButtonTapped))
         self.navigationItem.setLeftBarButton(addButton, animated: true)
-        
     }
     
     @objc
@@ -246,10 +236,7 @@ class WriteTaskViewController: UIViewController {
             self.navigationController?.popViewController(animated: true)
             return
         }
-        self.databaseStorage.objects(Task.self).forEach({
-                                                            print($0.description)
-            
-        })
+        self.databaseStorage.objects(Task.self).forEach({print($0.description)})
         let alertController = UIAlertController(title: "Attention!", message: "You have unsave changes", preferredStyle: .actionSheet)
         let saveAndClose = UIAlertAction(title: "Save", style: .default) { (_) in
             do {
@@ -285,4 +272,18 @@ class WriteTaskViewController: UIViewController {
         return !self.titleTextView.text.isEmpty || !self.descriptionTextView.text.isEmpty
     }
     
+    @objc
+    func datePickerDoneTapped() {
+        let dateFormater = DateFormatter()
+        dateFormater.dateFormat = "EEEE d MMM , yyyy"
+        dateTextField.text = dateFormater.string(from: datePicker.date)
+        dateTextField.resignFirstResponder()
+
+    }
+    
+    @objc
+    func datePickerCancelTapped() {
+        dateTextField.resignFirstResponder()
+
+    }
 }
