@@ -17,12 +17,12 @@ class TaskListController: UIViewController  {
     let tableView = UITableView(frame: .zero, style: .plain)
     let refreshControl = UIRefreshControl()
 
+    var taskManager = TaskManager.shared
     var networkManager = NetworkManager.shared
     let databaseStorage = DatabaseManager.shared
     var dataSource:  Results<Task>!
     var notificationToken: NotificationToken?
-    
-//        Array.init(repeating: Task(id: 2, title: "Title", dueBy: 1231312, priority: .high, taskDescription: "HelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHello"), count: 200)
+    var isAsc = true
     override func loadView() {
         super.loadView()
         self.view.backgroundColor = .white
@@ -37,23 +37,12 @@ class TaskListController: UIViewController  {
     }
     override func viewDidLoad() {
         super.viewDidLoad()
-//        databaseStorage.objects(Task.self).forEach { (task) in
-//            try! self.databaseStorage.write {
-//                self.databaseStorage.delete(task)
-//            }
-//        }
-        let request = RequestBuilder.getTasksRequest(page: 0, sortedBy: "title", sortingType: .asc)
-        //        networkManager.makeRequest(request) { (response, object) in
-        //            print(try! JSONSerialization.jsonObject(with: object as! Data, options: []))
-        //
-        //
-        //        } failure: { (error) in
-        //            assertionFailure(error.localizedDescription)
-        //        }
+        refreshControl.addTarget(self, action: #selector(fetchRemotlyTasks), for: .valueChanged)
+
         updateBarButtons()
         
         self.view.setNeedsUpdateConstraints()
-        dataSource = databaseStorage.objects(Task.self)
+        dataSource = databaseStorage.objects(Task.self).sorted(byKeyPath: "title", ascending: isAsc)
         notificationToken = dataSource.observe { [weak self] (changes) in
             guard let self = self else { return }
             switch changes {
@@ -81,11 +70,7 @@ class TaskListController: UIViewController  {
     deinit {
         notificationToken?.invalidate()
     }
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        
-        self.navigationController?.viewControllers.removeAll(where: { $0.self == ViewController().self })
-    }
+
     override func updateViewConstraints() {
         super.updateViewConstraints()
         guard !didConstraintsSetup else { return }
@@ -96,32 +81,46 @@ class TaskListController: UIViewController  {
     
     func updateBarButtons() {
         let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addNewTaskTapped))
+        let sortButton =  UIBarButtonItem(image: UIImage(systemName: "arrow.up.arrow.down"), style: .plain, target: self, action: #selector(sortTapped))
         self.navigationItem.setLeftBarButton(addButton, animated: true)
-        
+        self.navigationItem.setRightBarButton(sortButton, animated: true)
+    }
+    
+    @objc
+    func sortTapped() {
+        isAsc.toggle()
+        dataSource = dataSource.sorted(byKeyPath: "title", ascending: isAsc)
+        self.tableView.reloadData()
     }
     
     @objc
     func addNewTaskTapped() {
-        
-//        for _ in 0..<1 {
-            do {
-                try self.databaseStorage.write {
-                    let task = Task(id: nil,
-                                    title: Lorem.title,
-                                    dueBy: Date().millisecondsSince1970,
-                                    priority: TaskPriority.allCases.randomElement(),
-                                    taskDescription: Lorem.paragraphs(Int.random(in: 0...10)))
-                    self.databaseStorage.add(task)
-                    print(task.description)
-                }
-            } catch {
-                assertionFailure(error.localizedDescription)
+
+        do {
+            try self.databaseStorage.write {
+                let task = Task(id: nil,
+                                title: Lorem.title,
+                                dueBy: Int64(Date().timeIntervalSince1970),
+                                priority: TaskPriority.allCases.randomElement(),
+                                taskDescription: Lorem.paragraphs(Int.random(in: 0...10)))
+                self.databaseStorage.add(task)
+                print(task.description)
             }
-//        }
+        } catch {
+            assertionFailure(error.localizedDescription)
+        }
         
         //        let vc = WriteTaskViewController()
         //
         //        self.navigationController?.pushViewController(vc, animated: true)
+    }
+
+    @objc
+    func fetchRemotlyTasks(sender: UIRefreshControl) {
+        guard sender.isRefreshing else { return }
+        self.taskManager.fetchRemoteCaller(sortedBy: "title", sortingType: .asc) {
+            self.refreshControl.endRefreshing()
+        }
     }
 }
 
@@ -165,6 +164,9 @@ extension TaskListController: UITableViewDataSource {
         let action = UIContextualAction(style: .destructive, title: "Delete") { (_, _, editAction) in
             let task = self.dataSource[indexPath.row]
             try! self.databaseStorage.write {
+                if let taskId = task.id.value {
+                    self.databaseStorage.add(DeleteRemotelyJobRecord(taskId:taskId))
+                }
                 self.databaseStorage.delete(task)
             }
             editAction(true)
