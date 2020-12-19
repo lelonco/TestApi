@@ -13,6 +13,12 @@ class WriteTaskViewController: BaseViewController {
     var didConstraintsSetup = false
     var task: Task? = nil
     
+    let dateFormater: DateFormatter = {
+        let formater = DateFormatter()
+        formater.dateFormat = "EEEE d MMM , yyyy"
+        
+        return formater
+    }()
     let scrollView: UIScrollView = {
         let scroll = UIScrollView()
         scroll.isScrollEnabled = true
@@ -173,6 +179,7 @@ class WriteTaskViewController: BaseViewController {
         if let task = task {
             titleTextView.text = task.title
             descriptionTextView.text = task.taskDescription
+            dateTextField.text = dateFormater.string(from: Date(timeIntervalSince1970: TimeInterval(task.dueBy.value!)))
         }
 
         let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(datePickerDoneTapped))
@@ -266,16 +273,18 @@ class WriteTaskViewController: BaseViewController {
     
     
     func hasUnsavedChanges() -> Bool {
-        if let task = task {
-            return self.titleTextView.text != task.title || self.descriptionTextView.text != task.taskDescription ?? ""
+        if let task = task,
+           let dateInt = task.dueBy.value {
+            return self.titleTextView.text != task.title ||
+            self.descriptionTextView.text != task.taskDescription ?? "" ||
+                self.dateTextField.text! != dateFormater.string(from: Date(timeIntervalSince1970: TimeInterval(dateInt)))
         }
-        return !self.titleTextView.text.isEmpty || !self.descriptionTextView.text.isEmpty
+        return !self.titleTextView.text.isEmpty || !self.descriptionTextView.text.isEmpty || !self.dateTextField.text!.isEmpty
     }
     
     @objc
     func datePickerDoneTapped() {
-        let dateFormater = DateFormatter()
-        dateFormater.dateFormat = "EEEE d MMM , yyyy"
+
         dateTextField.text = dateFormater.string(from: datePicker.date)
         dateTextField.resignFirstResponder()
 
