@@ -144,7 +144,7 @@ class ViewController: UIViewController {
                 }
                 
             default:
-                assertionFailure("Something went wrong status code: \((response as? HTTPURLResponse)?.statusCode)")
+                assertionFailure("Something went wrong status code: \(String(describing: (response as? HTTPURLResponse)?.statusCode))")
             }
         } failure: { (error) in
             assertionFailure(error.localizedDescription)
@@ -162,7 +162,7 @@ class ViewController: UIViewController {
                 }
                 
             default:
-                assertionFailure("Something went wrong status code: \((response as? HTTPURLResponse)?.statusCode)")
+                assertionFailure("Something went wrong status code: \(String(describing: (response as? HTTPURLResponse)?.statusCode))")
             }
         } failure: { (error) in
             assertionFailure(error.localizedDescription)
