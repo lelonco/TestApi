@@ -150,6 +150,9 @@ class TaskDetailViewController: UIViewController {
         super.viewDidLoad()
         self.updateUIComponets()
         self.view.setNeedsUpdateConstraints()
+        
+        let pancil = UIBarButtonItem(image: UIImage(systemName: "pencil"), style: .plain, target: self, action: #selector(editTapped))
+        self.navigationItem.setRightBarButton(pancil, animated: false)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -225,6 +228,11 @@ class TaskDetailViewController: UIViewController {
         dueByLabel.text = dateFormater.string(from: Date(milliseconds: task.dueBy.value!))
         priorityLabel.text = task.priority?.rawValue
         descriptionLabel.text = task.taskDescription
-        notifyLabel.text = dateFormater.string(from: Date(milliseconds: task.dueBy.value!))//Date(milliseconds: task.dueBy.value!).description
+        notifyLabel.text = dateFormater.string(from: Date(timeIntervalSince1970: TimeInterval(task.dueBy.value!)))//Date(milliseconds: task.dueBy.value!).description
+    }
+    @objc
+    func editTapped() {
+        let vc = WriteTaskViewController(with: task)
+        self.navigationController?.pushViewController(vc, animated: true)
     }
 }
