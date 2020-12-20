@@ -225,10 +225,10 @@ class TaskDetailViewController: UIViewController {
         titleLabel.text = task.title
         let dateFormater = DateFormatter()
         dateFormater.dateFormat = "EEEE, d MMM , yyyy"
-        dueByLabel.text = dateFormater.string(from: Date(milliseconds: task.dueBy.value!))
+        dueByLabel.text = dateFormater.string(from: Date(milliseconds: task.dueBy))
         priorityLabel.text = task.priority?.rawValue
         descriptionLabel.text = task.taskDescription
-        notifyLabel.text = dateFormater.string(from: Date(timeIntervalSince1970: TimeInterval(task.dueBy.value!)))//Date(milliseconds: task.dueBy.value!).description
+        notifyLabel.text = dateFormater.string(from: Date(timeIntervalSince1970: TimeInterval(task.dueBy)))//Date(milliseconds: task.dueBy.value!).description
     }
     @objc
     func editTapped() {

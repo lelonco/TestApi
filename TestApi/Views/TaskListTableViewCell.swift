@@ -63,7 +63,7 @@ class TaskListTableViewCell: UITableViewCell {
         let dateFormater = DateFormatter()
         dateFormater.dateFormat = "EEEE, d MMM , yyyy"
         taskTitleLabel.text = task.title
-        dueTolabel.text = dateFormater.string(from: Date(timeIntervalSince1970: TimeInterval(task.dueBy.value!)))
+        dueTolabel.text = dateFormater.string(from: Date(timeIntervalSince1970: TimeInterval(task.dueBy)))
         priporityLabel.text = task.priority?.rawValue
         priorityImageView.image = UIImage(systemName: "arrow.up")?.withRenderingMode(.alwaysTemplate)
         
