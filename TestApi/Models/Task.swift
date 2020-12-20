@@ -27,7 +27,7 @@ class Task: Object, Codable {
     dynamic var taskUUID = UUID().uuidString
     dynamic var id = RealmOptional<Int>()
     dynamic var title: String? = nil
-    dynamic var dueBy = RealmOptional<Int64>()
+    dynamic var dueBy: Int64 = 0
     dynamic var priorityString: String?
     dynamic var wasEdited: Bool = false
     var priority: TaskPriority? {
@@ -39,18 +39,18 @@ class Task: Object, Codable {
     }
     dynamic var taskDescription: String?
 
-    convenience init(id: Int?, title: String?, dueBy: Int64?, priority: TaskPriority?, taskDescription: String?) {
+    convenience init(id: Int?, title: String?, dueBy: Int64, priority: TaskPriority?, taskDescription: String?) {
         self.init()
         self.id = RealmOptional(id)
         self.title = title
-        self.dueBy = RealmOptional(dueBy)
+        self.dueBy = dueBy
         self.priorityString = priority?.rawValue
         self.taskDescription = taskDescription
     }
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(title, forKey: .title)
-        try container.encode(dueBy.value, forKey: .dueBy)
+        try container.encode(dueBy, forKey: .dueBy)
         try container.encode(priorityString, forKey: .priority)
     }
     
@@ -60,13 +60,13 @@ class Task: Object, Codable {
         if let task = try? container.nestedContainer(keyedBy: CodingKeys.self, forKey: .task) {
             self.id = try RealmOptional<Int>(task.decode(Int.self, forKey: .id))
             self.title = try task.decode(String.self, forKey: .title)
-            self.dueBy = try RealmOptional<Int64>( task.decode(Int64.self, forKey: .dueBy))
+            self.dueBy = try task.decode(Int64.self, forKey: .dueBy)
             self.priorityString = try task.decode(String.self, forKey: .priority)
             self.taskDescription = try? task.decode(String.self, forKey: .taskDescription)
         } else {
             self.id = try RealmOptional<Int>(container.decode(Int.self, forKey: .id))
             self.title = try container.decode(String.self, forKey: .title)
-            self.dueBy = try RealmOptional<Int64>( container.decode(Int64.self, forKey: .dueBy))
+            self.dueBy = try container.decode(Int64.self, forKey: .dueBy)
             self.priorityString = try container.decode(String.self, forKey: .priority)
             self.taskDescription = try? container.decode(String.self, forKey: .taskDescription)
         }
