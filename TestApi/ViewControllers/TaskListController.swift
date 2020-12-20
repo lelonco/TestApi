@@ -13,6 +13,8 @@ import RealmSwift
 class TaskListController: UIViewController  {
     let reuseIdentifier = "TaskListControllerCellReuse"
     var didConstraintsSetup = false
+    let userNotificationCenter = UNUserNotificationCenter.current()
+
     
     let tableView = UITableView(frame: .zero, style: .plain)
     let refreshControl = UIRefreshControl()
@@ -37,6 +39,7 @@ class TaskListController: UIViewController  {
     }
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.userNotificationCenter.delegate = self
         refreshControl.addTarget(self, action: #selector(fetchRemotlyTasks), for: .valueChanged)
 
         updateBarButtons()
@@ -67,6 +70,23 @@ class TaskListController: UIViewController  {
         }
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        requestNotificationAuthorization()
+    }
+    
+    func requestNotificationAuthorization() {
+        let authOptions = UNAuthorizationOptions.init(arrayLiteral: .alert, .sound)
+        
+        self.userNotificationCenter.requestAuthorization(options: authOptions) { (success, error) in
+            if let error = error {
+                print("Error: ", error)
+            }
+        }
+    }
+    
+
     deinit {
         notificationToken?.invalidate()
     }
@@ -96,23 +116,23 @@ class TaskListController: UIViewController  {
     @objc
     func addNewTaskTapped() {
 
-        do {
-            try self.databaseStorage.write {
-                let task = Task(id: nil,
-                                title: Lorem.title,
-                                dueBy: Int64(Date().timeIntervalSince1970),
-                                priority: TaskPriority.allCases.randomElement(),
-                                taskDescription: Lorem.paragraphs(Int.random(in: 0...10)))
-                self.databaseStorage.add(task)
-                print(task.description)
-            }
-        } catch {
-            assertionFailure(error.localizedDescription)
-        }
+//        do {
+//            try self.databaseStorage.write {
+//                let task = Task(id: nil,
+//                                title: Lorem.title,
+//                                dueBy: Int64(Date().timeIntervalSince1970),
+//                                priority: TaskPriority.allCases.randomElement(),
+//                                taskDescription: Lorem.paragraphs(Int.random(in: 0...10)))
+//                self.databaseStorage.add(task)
+//                print(task.description)
+//            }
+//        } catch {
+//            assertionFailure(error.localizedDescription)
+//        }
         
-        //        let vc = WriteTaskViewController()
-        //
-        //        self.navigationController?.pushViewController(vc, animated: true)
+                let vc = WriteTaskViewController()
+        
+                self.navigationController?.pushViewController(vc, animated: true)
     }
 
     @objc
@@ -167,6 +187,8 @@ extension TaskListController: UITableViewDataSource {
                 if let taskId = task.id.value {
                     self.databaseStorage.add(DeleteRemotelyJobRecord(taskId:taskId))
                 }
+                self.userNotificationCenter.removeDeliveredNotifications(withIdentifiers: [task.taskUUID])
+                self.userNotificationCenter.removePendingNotificationRequests(withIdentifiers: [task.taskUUID])
                 self.databaseStorage.delete(task)
             }
             editAction(true)
@@ -182,8 +204,14 @@ extension TaskListController: UITableViewDataSource {
         cell.selectionStyle = .none
         return cell
     }
-    
-    
-    
-    
+}
+
+extension TaskListController: UNUserNotificationCenterDelegate {
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        completionHandler()
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.alert,.sound])
+    }
 }

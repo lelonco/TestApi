@@ -11,6 +11,8 @@ import RealmSwift
 
 class WriteTaskViewController: BaseViewController {
     
+    let userNotificationCenter = UNUserNotificationCenter.current()
+    
     var didConstraintsSetup = false
     var task: Task? = nil
     var selectedPriority: String? = nil {
@@ -262,6 +264,7 @@ class WriteTaskViewController: BaseViewController {
         let alertController = UIAlertController(title: "Attention!", message: "You have unsave changes", preferredStyle: .actionSheet)
         let saveAndClose = UIAlertAction(title: "Save", style: .default) { (_) in
             self.saveTask()
+            self.navigationController?.popViewController(animated: true)
         }
         let discard = UIAlertAction(title: "Discard", style: .default) { (_) in
             self.navigationController?.popViewController(animated: true)
@@ -282,15 +285,15 @@ class WriteTaskViewController: BaseViewController {
                     self.databaseStorage.add(task, update: .all)
                 } else {
                     let dateFromString = self.dateFormater.date(from: self.dateTextField.text ?? "") ?? Date()
-                    self.databaseStorage.add(Task(id: nil, title: self.titleTextView.text, dueBy: Int64(dateFromString.timeIntervalSince1970), priority: .high, taskDescription: self.descriptionTextView.text))
+                    self.task = Task(id: nil, title: self.titleTextView.text, dueBy: Int64(dateFromString.timeIntervalSince1970), priority: .high, taskDescription: self.descriptionTextView.text)
+                    self.databaseStorage.add(self.task!)
 
                 }
             }
         } catch {
             assertionFailure(error.localizedDescription)
         }
-
-        self.navigationController?.popViewController(animated: true)
+        storeNotification()
     }
     
     func hasUnsavedChanges() -> Bool {
@@ -313,5 +316,30 @@ class WriteTaskViewController: BaseViewController {
     @objc
     func datePickerCancelTapped() {
         dateTextField.resignFirstResponder()
+    }
+
+    func storeNotification() {
+        var dateComp = DateComponents()
+        dateComp.calendar = Calendar.current
+        dateComp.minute = 10
+        guard let task = self.task,
+              let notificationDate = Calendar.current.date(byAdding: dateComp,
+                                                           to: Date(timeIntervalSince1970: TimeInterval(task.dueBy))) else { return }
+        userNotificationCenter.removeDeliveredNotifications(withIdentifiers: [task.taskUUID])
+        userNotificationCenter.removePendingNotificationRequests(withIdentifiers: [task.taskUUID])
+        let notificationContent = UNMutableNotificationContent()
+        notificationContent.title = "You have a task that expires soon"
+        notificationContent.body = self.task?.title ?? ""
+        let notificationCalendar = Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second], from:notificationDate)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: notificationCalendar, repeats: false)
+        let request = UNNotificationRequest(identifier: self.task!.taskUUID,
+                                            content: notificationContent,
+                                            trigger: trigger)
+        
+        userNotificationCenter.add(request) { (error) in
+            if let error = error {
+                print("Notification Error: ", error)
+            }
+        }
     }
 }
