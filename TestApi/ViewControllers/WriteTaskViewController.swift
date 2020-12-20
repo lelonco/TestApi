@@ -7,12 +7,24 @@
 
 import Foundation
 import UIKit
+import RealmSwift
 
 class WriteTaskViewController: BaseViewController {
     
     var didConstraintsSetup = false
     var task: Task? = nil
-    
+    var selectedPriority: String? = nil {
+        didSet {
+            let selectedItem = priorityButtonsStack.arrangedSubviews.first { (view) -> Bool in
+                guard let button = view as? UIButton else { return false }
+                return button.titleLabel?.text == selectedPriority
+            } as? UIButton
+            prevSelection?.isSelected = false
+            selectedItem?.isSelected = true
+            prevSelection = selectedItem
+        }
+    }
+    var prevSelection: UIButton? = nil
     let dateFormater: DateFormatter = {
         let formater = DateFormatter()
         formater.dateFormat = "EEEE d MMM , yyyy"
@@ -155,11 +167,12 @@ class WriteTaskViewController: BaseViewController {
         TaskPriority.allCases.forEach({
             let button = UIButton()
             button.setTitle($0.rawValue, for: .normal)
-            button.setTitleColor(.black, for: .normal)
+            button.setTitleColor(.lightGray, for: .normal)
             button.addTarget(self, action: #selector(prioritySelected), for: .touchUpInside)
             button.layer.cornerRadius = 5
             button.layer.borderColor = UIColor.black.cgColor
             button.layer.borderWidth = 1
+            button.setTitleColor(.black, for: .selected)
             self.priorityButtonsStack.addArrangedSubview(button)
         })
         [titleSectionLabel, titleTextView].forEach({ self.titleRow.addArrangedSubview($0) })
@@ -179,7 +192,8 @@ class WriteTaskViewController: BaseViewController {
         if let task = task {
             titleTextView.text = task.title
             descriptionTextView.text = task.taskDescription
-            dateTextField.text = dateFormater.string(from: Date(timeIntervalSince1970: TimeInterval(task.dueBy.value!)))
+            dateTextField.text = dateFormater.string(from: Date(timeIntervalSince1970: TimeInterval(task.dueBy)))
+            selectedPriority = task.priorityString
         }
 
         let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(datePickerDoneTapped))
@@ -227,12 +241,13 @@ class WriteTaskViewController: BaseViewController {
     
     @objc
     func prioritySelected(sender: UIButton) {
-        print(sender.titleLabel?.text ?? "")
+        self.selectedPriority = sender.currentTitle
+
     }
     
     @objc
-    func notificationButtonTapped() {
-        print("notificationButtonTapped")
+    func notificationButtonTapped(sender: UIButton) {
+
     }
     
     
@@ -246,22 +261,7 @@ class WriteTaskViewController: BaseViewController {
         self.databaseStorage.objects(Task.self).forEach({print($0.description)})
         let alertController = UIAlertController(title: "Attention!", message: "You have unsave changes", preferredStyle: .actionSheet)
         let saveAndClose = UIAlertAction(title: "Save", style: .default) { (_) in
-            do {
-                try self.databaseStorage.write {
-                    if let task = self.task {
-                        task.taskDescription = self.descriptionTextView.text
-                        task.title = self.titleTextView.text
-                        task.wasEdited = true
-                    } else {
-                        self.databaseStorage.add(Task(id: nil, title: self.titleTextView.text, dueBy: Date().millisecondsSince1970, priority: .high, taskDescription: self.descriptionTextView.text))
-
-                    }
-                }
-            } catch {
-                assertionFailure(error.localizedDescription)
-            }
-
-            self.navigationController?.popViewController(animated: true)
+            self.saveTask()
         }
         let discard = UIAlertAction(title: "Discard", style: .default) { (_) in
             self.navigationController?.popViewController(animated: true)
@@ -271,13 +271,33 @@ class WriteTaskViewController: BaseViewController {
         self.present(alertController, animated: true, completion: nil)
     }
     
+    func saveTask() {
+        do {
+            try self.databaseStorage.write {
+                if let task = self.task {
+                    task.taskDescription = self.descriptionTextView.text
+                    task.title = self.titleTextView.text
+                    task.dueBy = Int64((self.dateFormater.date(from: self.dateTextField.text!))?.timeIntervalSince1970 ?? Date().timeIntervalSince1970)
+                    task.wasEdited = true
+                    self.databaseStorage.add(task, update: .all)
+                } else {
+                    let dateFromString = self.dateFormater.date(from: self.dateTextField.text ?? "") ?? Date()
+                    self.databaseStorage.add(Task(id: nil, title: self.titleTextView.text, dueBy: Int64(dateFromString.timeIntervalSince1970), priority: .high, taskDescription: self.descriptionTextView.text))
+
+                }
+            }
+        } catch {
+            assertionFailure(error.localizedDescription)
+        }
+
+        self.navigationController?.popViewController(animated: true)
+    }
     
     func hasUnsavedChanges() -> Bool {
-        if let task = task,
-           let dateInt = task.dueBy.value {
+        if let task = task {
             return self.titleTextView.text != task.title ||
             self.descriptionTextView.text != task.taskDescription ?? "" ||
-                self.dateTextField.text! != dateFormater.string(from: Date(timeIntervalSince1970: TimeInterval(dateInt)))
+                self.dateTextField.text! != dateFormater.string(from: Date(timeIntervalSince1970: TimeInterval(task.dueBy)))
         }
         return !self.titleTextView.text.isEmpty || !self.descriptionTextView.text.isEmpty || !self.dateTextField.text!.isEmpty
     }
@@ -293,6 +313,5 @@ class WriteTaskViewController: BaseViewController {
     @objc
     func datePickerCancelTapped() {
         dateTextField.resignFirstResponder()
-
     }
 }
