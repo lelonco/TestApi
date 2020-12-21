@@ -8,7 +8,7 @@
 import UIKit
 import PureLayout
 
-class ViewController: UIViewController {
+class ViewController: BaseViewController {
 
     let networkManager = NetworkManager.shared
     var didConstraintsSetup = false
@@ -142,9 +142,14 @@ class ViewController: UIViewController {
                    let token = dict["token"] as? String {
                     self.saveAccountAcess(token: token)
                 }
-                
+            case 404:
+                self.presentAlert(title: "Error", message: "Something went wrong 404")
             default:
-                assertionFailure("Something went wrong status code: \(String(describing: (response as? HTTPURLResponse)?.statusCode))")
+                let decoder = JSONDecoder()
+                let errorMessage = try! decoder.decode(ErrorMesasge.self, from: responeObject as! Data)
+                DispatchQueue.main.async {
+                    self.presentAlert(title: errorMessage.message ?? "", message: errorMessage.fields?.description() ?? "")
+                }
             }
         } failure: { (error) in
             assertionFailure(error.localizedDescription)
@@ -160,6 +165,10 @@ class ViewController: UIViewController {
                    let token = dict["token"] as? String {
                     self.saveAccountAcess(token: token)
                 }
+            case 422:
+                let decoder = JSONDecoder()
+                let errorMessage = try! decoder.decode(ErrorMesasge.self, from: responeObject as! Data)
+                print(errorMessage.getErrorMessage())
                 
             default:
                 assertionFailure("Something went wrong status code: \(String(describing: (response as? HTTPURLResponse)?.statusCode))")

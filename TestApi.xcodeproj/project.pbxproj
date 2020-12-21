@@ -23,6 +23,7 @@
 		B36DBB26258EA40800986765 /* ShadowTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36DBB25258EA40800986765 /* ShadowTextView.swift */; };
 		B36DBB29258EA56000986765 /* BaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36DBB28258EA56000986765 /* BaseViewController.swift */; };
 		B36DBB2C258EBB0800986765 /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36DBB2B258EBB0800986765 /* Reachability.swift */; };
+		B36DBB30259024C800986765 /* ErorrMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36DBB2F259024C800986765 /* ErorrMessage.swift */; };
 		B378D8AE2587F4BF00B8A120 /* TaskListTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B378D8AD2587F4BF00B8A120 /* TaskListTableViewCell.swift */; };
 		B378D8B625880E6100B8A120 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B378D8B525880E6100B8A120 /* KeychainManager.swift */; };
 		B378D8B925880FBE00B8A120 /* AccountAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = B378D8B825880FBE00B8A120 /* AccountAccess.swift */; };
@@ -56,6 +57,7 @@
 		B36DBB25258EA40800986765 /* ShadowTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShadowTextView.swift; sourceTree = "<group>"; };
 		B36DBB28258EA56000986765 /* BaseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseViewController.swift; sourceTree = "<group>"; };
 		B36DBB2B258EBB0800986765 /* Reachability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reachability.swift; sourceTree = "<group>"; };
+		B36DBB2F259024C800986765 /* ErorrMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErorrMessage.swift; sourceTree = "<group>"; };
 		B378D8AD2587F4BF00B8A120 /* TaskListTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskListTableViewCell.swift; sourceTree = "<group>"; };
 		B378D8B525880E6100B8A120 /* KeychainManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		B378D8B825880FBE00B8A120 /* AccountAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountAccess.swift; sourceTree = "<group>"; };
@@ -98,6 +100,7 @@
 				B34C02EB2587CFF7003F826E /* User.swift */,
 				B378D8B825880FBE00B8A120 /* AccountAccess.swift */,
 				B3A197FA258D402A004B0AD5 /* FetchResponseModel.swift */,
+				B36DBB2F259024C800986765 /* ErorrMessage.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -273,6 +276,7 @@
 				C49076A42584FD17009084BB /* ViewController.swift in Sources */,
 				B378D8AE2587F4BF00B8A120 /* TaskListTableViewCell.swift in Sources */,
 				B3A197FB258D402A004B0AD5 /* FetchResponseModel.swift in Sources */,
+				B36DBB30259024C800986765 /* ErorrMessage.swift in Sources */,
 				B36DBB2C258EBB0800986765 /* Reachability.swift in Sources */,
 				B324684B2587C27E0051805A /* TestApiRequest.swift in Sources */,
 				B30E41E32589654100475200 /* WriteTaskViewController.swift in Sources */,
