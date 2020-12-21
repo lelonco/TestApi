@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-class TaskDetailViewController: UIViewController {
+class TaskDetailViewController: BaseViewController {
     
     var task: Task {
         didSet {
@@ -58,13 +58,7 @@ class TaskDetailViewController: UIViewController {
         return label
     }()
     
-    let prioritySectionLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = .darkGray
-        label.text = "Priority"
-        label.font = .systemFont(ofSize: 17, weight: .regular)
-        return label
-    }()
+    let prioritySectionLabel = SectionLabel(with: "Priority")
     
     let priorityImageView = UIImageView(image: UIImage(systemName: "arrow.up")?.withRenderingMode(.alwaysTemplate))
     
@@ -75,13 +69,7 @@ class TaskDetailViewController: UIViewController {
         return label
     }()
     
-    let desctiptionSectionLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = .darkGray
-        label.text = "Description"
-        label.font = .systemFont(ofSize: 17, weight: .regular)
-        return label
-    }()
+    let desctiptionSectionLabel = SectionLabel(with: "Description")
 
     let descriptionLabel: UILabel = {
         let label = UILabel()
@@ -91,13 +79,7 @@ class TaskDetailViewController: UIViewController {
         return label
     }()
     
-    let notificationSectionLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = .darkGray
-        label.text = "Notification"
-        label.font = .systemFont(ofSize: 17, weight: .regular)
-        return label
-    }()
+    let notificationSectionLabel = SectionLabel(with: "Notification")
     
     let notifyLabel: UILabel = {
         let label = UILabel()
@@ -110,11 +92,14 @@ class TaskDetailViewController: UIViewController {
         let view = UIView()
         return view
     }()
+    
     let descriptionRow = UIView()
     let notifyRow = UIView()
+    
     init(with task:Task) {
         self.task = task
-        super.init(nibName: nil, bundle: nil)
+        super.init()
+//        self.init(nibName: nil, bundle: nil)
     }
     
     required init?(coder: NSCoder) {
@@ -139,7 +124,6 @@ class TaskDetailViewController: UIViewController {
         
         [headerContainer,priorityRow,descriptionRow,notifyRow].forEach({ contentStack.addArrangedSubview($0)})
         contentView.addSubview(contentStack)
-//        contentView.backgroundColor = .blue
         self.view.addSubview(scrollView)
         scrollView.addSubview(contentView)
         
