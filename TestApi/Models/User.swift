@@ -6,10 +6,8 @@
 //
 
 import Foundation
-import RealmSwift
 
-@objcMembers
-class User: Object, Codable {
+class User: Codable {
     dynamic var email: String? = nil
     dynamic var password: String? = nil
 
