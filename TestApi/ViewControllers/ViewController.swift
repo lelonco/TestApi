@@ -212,7 +212,7 @@ class ViewController: BaseViewController {
     }
     func saveAccountAcess(token: String?) {
         DispatchQueue.main.async {
-
+            TaskManager.shared.cleanQueue()
             guard let email = self.emailTextField.text,
                   let password = self.passwordTextField.text else {
                 return
@@ -229,6 +229,7 @@ class ViewController: BaseViewController {
             KeychainManager.save(account: accountAccess)
             UserDefaults.standard.setValue(true, forKey: Constants.didRegistred)
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.didRegistredNotification), object: nil)
+            TaskManager.shared.startExecute()
 
         }
     }
