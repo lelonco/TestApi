@@ -10,7 +10,7 @@ import UIKit
 import LoremSwiftum
 import RealmSwift
 
-class TaskListController: UIViewController  {
+class TaskListController: BaseViewController  {
     let reuseIdentifier = "TaskListControllerCellReuse"
     var didConstraintsSetup = false
     let userNotificationCenter = UNUserNotificationCenter.current()

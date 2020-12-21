@@ -154,11 +154,13 @@ class BaseViewController: UIViewController {
     }
     
     
-    func presentAlert(title:String, message: String) {
+    func presentAlert(title:String, message: String, complition: (() -> ())? = nil) {
         
         let allertCOntrller = UIAlertController(title: title, message: message, preferredStyle: .alert)
         
-        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel) { (_) in
+            complition?()
+        }
         
         allertCOntrller.addAction(cancel)
         self.present(allertCOntrller, animated: true, completion: nil)

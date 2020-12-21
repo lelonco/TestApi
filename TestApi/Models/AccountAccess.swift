@@ -5,14 +5,14 @@
 //  Created by Yaroslav on 14.12.2020.
 //
 import Foundation
-import RealmSwift
 
-@objcMembers
-class AccountAccess: Object, Codable {
+class AccountAccess: Codable {
     
-    dynamic var user: User? = nil
-    dynamic var token: String? = nil
-    dynamic var expierDate: Date? = nil
+    var user: User? = nil
+    var token: String? = nil
+    var expierDate: Date? = nil
+    var enteringMode: EnteringMode? = nil
+//    var didEnteredWhenOffline = false
     
     convenience init(user: User?, token: String?, expierDate: Date?) {
         self.init()
@@ -20,5 +20,10 @@ class AccountAccess: Object, Codable {
         self.token = token
         self.expierDate = expierDate
     }
+}
+
+enum EnteringMode:Int, Codable {
+    case login
+    case register
 }
 

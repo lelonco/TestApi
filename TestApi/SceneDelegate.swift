@@ -17,11 +17,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
+        NotificationCenter.default.addObserver(self, selector: #selector(changeRoot), name: NSNotification.Name(rawValue: Constants.didRegistredNotification), object: nil)
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(frame: windowScene.coordinateSpace.bounds)
         window?.windowScene = windowScene
         let didRegistred = UserDefaults.standard.bool(forKey: Constants.didRegistred)
-        let navigationController = UINavigationController(rootViewController: didRegistred ?TaskListController() : ViewController())
+        let navigationController = UINavigationController(rootViewController: didRegistred ? TaskListController() : ViewController())
         window?.rootViewController = navigationController
         window?.makeKeyAndVisible()
         registerSingletons()
@@ -55,11 +56,31 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // to restore the scene back to its current state.
     }
 
+    @objc
+    func changeRoot() {
+        guard let window = self.window else {
+            return
+        }
+        let didRegistred = UserDefaults.standard.bool(forKey: Constants.didRegistred)
+
+        DispatchQueue.main.async {
+            window.rootViewController = UINavigationController(rootViewController: didRegistred ? TaskListController() : ViewController())
+            
+            UIView.transition(with: window,
+                              duration: 0.4,
+                              options: [.transitionCrossDissolve],
+                              animations: nil,
+                              completion: nil)
+        }
+
+    }
 
     func registerSingletons() {
         
-        let networkManager = NetworkManager.shared
-        let accses = AccessManager.shared
+        let _ = NetworkManager.shared
+        let _ = AccessManager.shared
+        let _ = TaskManager.shared
+        _ = Reachability.shared
     }
 }
 

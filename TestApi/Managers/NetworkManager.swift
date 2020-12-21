@@ -11,18 +11,30 @@ class NetworkManager: NSObject {
     static let shared = NetworkManager()
     let session: URLSession
     let baseUrl: URL
-    
+    var errorSleepTime = 5
+    var firstFailureRequest: URLRequest? = nil
     private override init() {
         self.session = URLSession.shared
         self.baseUrl = URL(string: "https://testapi.doitserver.in.ua/api/")!
     }
     func makeRequest(_ request: TestApiRequest, success:@escaping (URLResponse?, Any?) -> (), failure:@escaping (Error) -> ()) {
+        guard firstFailureRequest == nil else { return }
         guard let urlRequest = self.prepareUrlRequest(with: request, failure: failure) else {
             return
         }
         let task = session.dataTask(with: urlRequest) { (data, response, error) in
             guard let data = data, let response = response else {
                 if let error = error {
+                    if let urlError =  error as? URLError {
+                        if Constants.noInternetErorrs.contains(urlError.code) || !Reachability.shared.isConnected {
+                            Reachability.shared.isConnected = false
+                            failure(error)
+                            self.firstFailureRequest = urlRequest
+                            self.retryLastRequest(with: urlRequest, success: success, failure: failure)
+                            return
+                        }
+                    }
+
                     failure(error)
                 } else {
                     let nsError = NSError(domain: "Something went wrong", code: -99, userInfo: nil)
@@ -30,7 +42,6 @@ class NetworkManager: NSObject {
                 }
                 return
             }
-            
             success(response, data)
         }
         task.resume()
@@ -64,5 +75,35 @@ class NetworkManager: NSObject {
         urlRequest.httpMethod = request.httpMethod.rawValue
 
         return urlRequest
+    }
+    
+    func retryLastRequest(with urlRequest: URLRequest, success:@escaping (URLResponse?, Any?) -> (), failure:@escaping (Error) -> ()) {
+        print("Called date:%@", Date())
+        Thread.sleep(forTimeInterval: TimeInterval(errorSleepTime))
+        let task = session.dataTask(with: urlRequest) { (data, response, error) in
+            print("Executed date:%@", Date())
+            guard let data = data, let response = response else {
+                if let error = error {
+                    if let urlError =  error as? URLError {
+                        if Constants.noInternetErorrs.contains(urlError.code) || !Reachability.shared.isConnected {
+                            self.errorSleepTime = self.errorSleepTime * 2
+                            Reachability.shared.isConnected = false
+                            self.retryLastRequest(with: urlRequest, success: success, failure: failure)
+                            return
+                        }
+                    }
+
+                    failure(error)
+                } else {
+                    let nsError = NSError(domain: "Something went wrong", code: -99, userInfo: nil)
+                    failure(nsError)
+                }
+                return
+            }
+            Reachability.shared.isConnected = true
+            self.firstFailureRequest = nil
+            success(response, data)
+        }
+        task.resume()
     }
 }

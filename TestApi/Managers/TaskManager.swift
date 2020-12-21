@@ -9,42 +9,58 @@ import Foundation
 import RealmSwift
 
 class TaskManager {
+    var didStarted = false
     static let shared = TaskManager()
     private var isFetching = false
     private let networkManager: NetworkManager = NetworkManager.shared
     private let databaseStorage = DatabaseManager.shared
 
-    private var updatingQueue: OperationQueue = {
+     var updatingQueue: OperationQueue = {
         var queue = OperationQueue()
         queue.name = "UpdatingOperationQueue"
         
         return queue
     }()
     
-    private var uploadPandingTasks: Results<Task>
-    private var pandingDeletionJobs: Results<DeleteRemotelyJobRecord>
-    private var pandingUpdateTasks: Results<Task>
+    private var uploadPandingTasks: Results<Task>!
+    private var pandingDeletionJobs: Results<DeleteRemotelyJobRecord>!
+    private var pandingUpdateTasks: Results<Task>!
     
     private var notificationUpload: NotificationToken?
     private var notificationDelete: NotificationToken?
     private var notificationUpdate: NotificationToken?
+
     
     init() {
-        self.uploadPandingTasks = databaseStorage.objects(Task.self).filter("id == nil")
-        self.pandingDeletionJobs = databaseStorage.objects(DeleteRemotelyJobRecord.self)
-        self.pandingUpdateTasks = databaseStorage.objects(Task.self).filter("wasEdited = true && id != nil")
-        
-        notificationUpload = uploadPandingTasks.observe{ (change) in
-            self.uploadTasksToRemote(with: change)
-        }
-        notificationDelete = pandingDeletionJobs.observe({ (change) in
-            self.deleteTasksFromRemote(with: change)
-        })
-        notificationUpdate = pandingUpdateTasks.observe({ (change) in
-            self.updateTasksOnRemote(with: change)
-        })
+
     }
     
+    func startExecute() {
+        guard !didStarted else { return }
+        DispatchQueue.main.async {
+            self.uploadPandingTasks = self.databaseStorage.objects(Task.self).filter("id == nil")
+            self.pandingDeletionJobs = self.databaseStorage.objects(DeleteRemotelyJobRecord.self)
+            self.pandingUpdateTasks = self.databaseStorage.objects(Task.self).filter("wasEdited = true && id != nil")
+            
+            self.notificationUpload = self.uploadPandingTasks.observe{ (change) in
+                self.uploadTasksToRemote(with: change)
+            }
+            self.notificationDelete = self.pandingDeletionJobs.observe({ (change) in
+                self.deleteTasksFromRemote(with: change)
+            })
+            self.notificationUpdate = self.pandingUpdateTasks.observe({ (change) in
+                self.updateTasksOnRemote(with: change)
+            })
+            self.didStarted = true
+            self.updatingQueue.isSuspended = false
+        }
+
+    }
+    func cleanQueue() {
+        self.updatingQueue.isSuspended = true
+        self.updatingQueue.cancelAllOperations()
+        self.didStarted = false
+    }
     //MARK: - Download
     
     func fetchRemoteCaller(sortedBy: String, sortingType:SortingType, complition:@escaping () -> ()) {
@@ -246,13 +262,23 @@ class UpdateTaskInfoRemotlyOpereation: Operation {
         guard !isCancelled else { return }
 
         self.networkManager.makeRequest(request) { (response, data) in
-            if let statusCode = (response as? HTTPURLResponse)?.statusCode,
-               statusCode >= 200,
-               statusCode <= 202 {
+            guard let statusCode = (response as? HTTPURLResponse)?.statusCode else { return }
+            
+            switch statusCode {
+            case 200...202:
                 self.requestSuccess?()
+            case 400...499:
+                if ((response as? HTTPURLResponse)?.allHeaderFields["Content-type"] as? String)?.contains("json") ?? false {
+                    print(try? JSONSerialization.jsonObject(with: data as! Data, options: []))
+                }
+                assertionFailure("Something went wrong")
+            default:
+                // probably internet connetion
+            break
             }
         } failure: { (error) in
-            assertionFailure(error.localizedDescription)
+
+//            assertionFailure(error.localizedDescription)
         }
 
     }

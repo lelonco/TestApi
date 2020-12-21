@@ -106,9 +106,9 @@ class ViewController: BaseViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        loginRegisterButton.addTarget(self, action: #selector(register), for: .touchUpInside)
+        loginRegisterButton.addTarget(self, action: #selector(loginRegisterTapped), for: .touchUpInside)
         emailTextField.text = "sample@sample.com"
-        passwordTextField.text = "123123"
+        passwordTextField.text = "123123131321"
 
         // Do any additional setup after loading the view.
     }
@@ -130,12 +130,23 @@ class ViewController: BaseViewController {
     }
     
     @objc
+    func loginRegisterTapped() {
+        if didLoginModeEnabled {
+            login()
+        } else {
+            register()
+        }
+    }
+    
+    
     func register() {
-        
+
         let user = User(email: emailTextField.text!, password: passwordTextField.text!)
         
         let request = RequestBuilder.registerNewUser(newUser: user)
         networkManager.makeRequest(request) { (response, responeObject) in
+            guard let frontViewController = UIApplication.topViewController() as? BaseViewController else { return }
+
             switch (response as? HTTPURLResponse)?.statusCode {
             case 201:
                 if let dict = (try! JSONSerialization.jsonObject(with: responeObject as! Data, options: [])) as? [String:Any],
@@ -148,36 +159,58 @@ class ViewController: BaseViewController {
                 let decoder = JSONDecoder()
                 let errorMessage = try! decoder.decode(ErrorMesasge.self, from: responeObject as! Data)
                 DispatchQueue.main.async {
-                    self.presentAlert(title: errorMessage.message ?? "", message: errorMessage.fields?.description() ?? "")
+                    frontViewController.presentAlert(title: errorMessage.message ?? "", message: errorMessage.fields?.description() ?? "")
                 }
             }
         } failure: { (error) in
+            if !Reachability.shared.isConnected {
+                self.saveAccountAcess(token: nil)
+            }
             assertionFailure(error.localizedDescription)
         }
     }
+    
     func login() {
         let user = User(email: emailTextField.text!, password: passwordTextField.text!)
         let request = RequestBuilder.authorize(user: user)
         networkManager.makeRequest(request) { (response, responeObject) in
+            guard let frontViewController = UIApplication.topViewController() as? BaseViewController else { return }
             switch (response as? HTTPURLResponse)?.statusCode {
-            case 201:
+            case 200:
                 if let dict = (try! JSONSerialization.jsonObject(with: responeObject as! Data, options: [])) as? [String:Any],
                    let token = dict["token"] as? String {
                     self.saveAccountAcess(token: token)
                 }
-            case 422:
+            case 403,422:
                 let decoder = JSONDecoder()
                 let errorMessage = try! decoder.decode(ErrorMesasge.self, from: responeObject as! Data)
                 print(errorMessage.getErrorMessage())
+                DispatchQueue.main.async {
+                    frontViewController.presentAlert(title: errorMessage.message ?? "", message: errorMessage.fields?.description() ?? "") {
+                        if frontViewController != self {
+                            UserDefaults.standard.setValue(false, forKey: Constants.didRegistred)
+                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.didRegistredNotification), object: nil)
+                        }
+                    }
+                }
                 
             default:
+//                let decoder = JSONDecoder()
+//                let errorMessage = try! decoder.decode(ErrorMesasge.self, from: responeObject as! Data)
+//                print(errorMessage.getErrorMessage())
+//                DispatchQueue.main.async {
+//                    self.presentAlert(title: errorMessage.message ?? "", message: errorMessage.fields?.description() ?? "")
+//                }
                 assertionFailure("Something went wrong status code: \(String(describing: (response as? HTTPURLResponse)?.statusCode))")
             }
         } failure: { (error) in
-            assertionFailure(error.localizedDescription)
+            if !Reachability.shared.isConnected {
+                self.saveAccountAcess(token: nil)
+            }
+//            assertionFailure(error.localizedDescription)
         }
     }
-    func saveAccountAcess(token: String) {
+    func saveAccountAcess(token: String?) {
         DispatchQueue.main.async {
 
             guard let email = self.emailTextField.text,
@@ -190,12 +223,13 @@ class ViewController: BaseViewController {
             let calendar = Calendar.current
             let expierDate = calendar.date(byAdding: dateComp, to: Date())
             let accountAccess = AccountAccess(user:User(email:email,password:password), token: token, expierDate: expierDate)
-            
+            let mode:EnteringMode = self.didLoginModeEnabled ? .login : .register
+            accountAccess.enteringMode = mode
+            KeychainManager.removeSecureInfo()
             KeychainManager.save(account: accountAccess)
             UserDefaults.standard.setValue(true, forKey: Constants.didRegistred)
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.didRegistredNotification), object: nil)
-            let vc = TaskListController()
-            self.navigationController?.pushViewController(vc, animated: true)
+
         }
     }
     @objc
